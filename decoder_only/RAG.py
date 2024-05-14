@@ -29,7 +29,7 @@ nest_asyncio.apply()
 sys.path.append('../..')
 
 
-class MITREICSAnalysis:
+class MITREAnalysis:
     def __init__(self, api_key, data_source=None, mode='url', llm_model_name="gpt-3.5-turbo-1106"):
         self.setup_openai(api_key)
         self.data = self.load_data(data_source, mode)      
@@ -43,7 +43,7 @@ class MITREICSAnalysis:
 
     def load_data(self, data_source, mode):
         if mode == 'csv':
-            self.loader = CSVLoader(data_source, source_column='Description', metadata_columns=['URL'] , encoding="ISO-8859-1")
+            self.loader = CSVLoader(data_source, source_column='Procedures', metadata_columns=['URL'] , encoding="ISO-8859-1")
             self.data = self.loader.load()
         elif mode == 'all_urls':
             self.data = self.load_and_split_web_content_all(Enterprise_URLS)
@@ -108,7 +108,7 @@ class MITREICSAnalysis:
     def load_questions_from_csv(self, csv_file):
         list_of_questions = []
         df = pd.read_csv(csv_file)
-        for procedure in df['Description']:
+        for procedure in df['Procedures']:
             temp = f"Knowing that <<{procedure}>>, what MITRE ATT&CK tactics will a cyber adversary achieve with this technique?"
             self.perform_similarity_search(temp, k=3)
             print('------------------')

@@ -10,7 +10,7 @@ import configparser
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-def get_completion(prompt, model="gpt-4-1106-preview"):
+def get_completion(prompt, model="gpt-3.5-turbo"):
     if "gpt" in model:
         api_key = config.get('API', 'OpenAI_Key')
         openai.api_key = api_key
@@ -47,14 +47,14 @@ def get_completion(prompt, model="gpt-4-1106-preview"):
 
 def load_questions_from_csv(csv_file):
     list_of_questions = []
-    df = pd.read_csv(csv_file)
-    for procedure in df['Description']:
+    df = pd.read_csv(csv_file)[:20]
+    for procedure in df['Procedures']:
         temp = f"Knowing that <<{procedure}>>, what MITRE ATT&CK tactics will a cyber adversary achieve with this technique?"
         list_of_questions.append(temp)
     return list_of_questions
 
 
-def prediction(list_of_questions, model="gpt-4-1106-preview"):
+def prediction(list_of_questions, model="gpt-3.5-turbo"):
     predictions = []
     counter = 0
     for question in list_of_questions:
