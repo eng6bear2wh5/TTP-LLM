@@ -27,7 +27,7 @@ pip install -r requirements.txt
    - **Description**: Encoded version of the dataset for evaluation.
 
 4. **Procedures_RAG_Similarity.csv**
-   - **Description**: Contains the top-2 most similar procedures along with their tactics.
+   - **Description**: Contains the top-3 most similar procedures along with their tactics.
 
 ### Encoder-Only Folder
 
