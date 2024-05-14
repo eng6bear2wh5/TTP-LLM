@@ -1,7 +1,7 @@
 # TTP-LLM
-Advancing TTP Analysis: Harnessing the Power of Large Language Models with Retrieval Augmented Generation
+Advancing TTP Analysis: Harnessing the Power of Large Language Models with Retrieval Augmented Generation (RAG)
 
-This repository provides resources and tools for analyzing the MITRE ATT&CK framework with the aim of classifying the ATT&CK tactics. The repository is structured for the training and evaluation of different types of Large Language Models using encoder-only and decoder-only approaches.
+This repository provides resources and tools for analyzing the MITRE ATT&CK framework with the aim of classifying the ATT&CK tactics. The repository is structured for the training and evaluation of different types of Large Language Models using fine-tuning of encoder-only models and RAG of decoder-only models.
 
 ## Setup
 Create a conda environment and install the libraries:
