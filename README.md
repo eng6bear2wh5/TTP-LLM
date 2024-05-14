@@ -11,25 +11,46 @@ conda activate TTP-LLM
 pip install -r requirements.txt
 ```
 
+## Repository Structure
+
+### Data Folder
+
+1. **MITRE_Tactic_and_Techniques_Descriptions.csv**
+   - **Description**: Training dataset crawled from the MITRE ATT&CK framework.
+   - **Purpose**: Used for training encoder-only models to understand and classify tactics.
+
+2. **MITRE_Procedures.csv**
+   - **Description**: Main dataset crawled from the MITRE ATT&CK framework.
+   - **Purpose**: Contains the procedures' descriptions along with their corresponding tactic(s).
+
+3. **MITRE_Procedures_encoded.csv**
+   - **Description**: Encoded version of the dataset for evaluation.
+
+4. **Procedures_RAG_Similarity.csv**
+   - **Description**: Contains the top-2 most similar procedures along with their tactics.
+
+### Encoder-Only Folder
+
+- **Notebooks**
+  - **Purpose**: Fine-tuning encoder-only models (e.g., RoBERTa and SecureBERT) using the "MITRE_Tactic_and_Techniques_Descriptions.csv" dataset and evaluating them on "MITRE_Procedures.csv".
+
+### Decoder-Only Folder
+
+- **Purpose**: Instructions on using decoder-only LLMs with or without Retrieval-Augmented Generation (RAG) techniques.
+
+
+1. **prompt_only.py**
+   - **Description**: Script for directly accessing LLM models with prompt engineering.
+
+2. **RAG.py**
+   - **Description**: Script containing three different RAG techniques:
+     - **all_urls**: Loads all the Enterprise URLs from MITRE ATT&CK for retrieval.
+     - **reference_url**: Loads the reference URL of each specific procedure description (found in the MITRE_Procedures.csv dataset).
+     - **similar_procedure_urls**: Retrieves URLs corresponding to the top-3 'target' procedure descriptions that are most similar to the 'source' procedure specified in the query.
+
 ## Usage
 
-In the data folder, there are four files:
-1) "MITRE_Tactic_and_Techniques_Descriptions.csv" is the training dataset (crawled from the MITRE ATT&CK framework) and is used for training encoder_only models to understand and classify tactics.
-2) "MITRE_Procedures.csv" is the main dataset that is crawled from the MITRE ATT&CK framework that contains the procedures' descriptions along with their corresponding tactic(s)
-3) "MITRE_Procedures_encoded.csv" is the encoded version of the dataset for evaluation
-4) "Procedures_RAG_Similarity.csv" is the file containing the top-2 most similar procedures along with their tactics
-
-The encoder_only folder contains the notebooks on fine-tuning the encoder_only models (e.g., roberta and secureBERT) with "MITRE_Tactic_and_Techniques_Descriptions.csv" data and evaluating them on "MITRE_Procedures.csv".
-
-The decoder_only folder contains .py files on how to use decoder_only LLMs with or without RAG techniques.
-The "prompt_only.py" file is the process of directly accessing the OpenAI GPT models with prompt engineering. 
-
-The "RAG.py" file contains three different RAG techniques:
-1) all_urls: This is to load all the ICS URLs from MITRE ATT&CK for retrieval.
-2) reference_url: This is to load the reference URL of each specific procedure description (the reference URL is in the ICS_Procedures_main.csv dataset).
-3) similar_procedure_urls: This is to retrieve URLs that correspond to the top-2 'target' procedure descriptions, which are most similar to the 'source' procedure specified in the query.
-
-## How to Run
+### How to Run
 
 1) Create a "config.ini" file and put your API key in the following format:
 ```python
