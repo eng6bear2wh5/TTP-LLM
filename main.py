@@ -9,6 +9,7 @@ import time
 import ast
 from decoder_only.urls import *
 from encoder_only import *
+from openai import OpenAI
 
 def handle_nan(value):
     if isinstance(value, list):
@@ -121,7 +122,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--llm', 
         type=str, 
-        default='gpt-3.5-turbo-1106', 
+        default='gemini-2.5-pro-preview-03-25', 
         help='LLM for use: e.g., gpt-3.5-turbo')
     parser.add_argument(
         '--mode', 

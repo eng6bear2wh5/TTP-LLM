@@ -1,11 +1,3 @@
-#!pip install -q langchain
-#!pip install -q Pydantic==1.10.12
-#!pip install -q chromadb
-#!pip install -q tiktoken
-#!pip install -q lark
-#!pip install faiss-cpu
-
-
 import os
 import sys
 import openai
@@ -14,37 +6,82 @@ import pandas as pd
 import nest_asyncio
 from langchain.document_loaders.csv_loader import CSVLoader
 from langchain.document_loaders import WebBaseLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter, CharacterTextSplitter, TokenTextSplitter, NLTKTextSplitter
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.chat_models import ChatOpenAI
-from langchain.chains import RetrievalQA
+from langchain.llms import HuggingFacePipeline
 from decoder_only.urls import Enterprise_URLS
 import nest_asyncio
+from transformers import AutoTokenizer, pipeline
+import torch
 nest_asyncio.apply()
 sys.path.append('../..')
 
 
 class MITREAnalysis:
     def __init__(self, api_key, data_source=None, mode='url', llm_model_name="gpt-3.5-turbo-1106"):
-        self.setup_openai(api_key)
+        self.llm_model_name = llm_model_name
+        if "gpt" in llm_model_name:
+            self.setup_openai(api_key)
         self.data = self.load_data(data_source, mode)      
         self.embeddings = OpenAIEmbeddings(openai_api_key=api_key)
         self.vectordb = FAISS.from_documents(documents=self.data, embedding=self.embeddings)
-        self.llm = ChatOpenAI(model_name=llm_model_name, temperature=0, openai_api_key=api_key, model_kwargs={"seed": 1106})
+        self.llm = self.setup_llm(llm_model_name, api_key)
         self.prompt_template = self.build_qa_chain_prompt()
 
     def setup_openai(self, api_key):
         openai.api_key = api_key
 
+    def setup_llm(self, llm_model_name, api_key):
+        if "gpt" in llm_model_name:
+            return ChatOpenAI(model_name=llm_model_name, temperature=0, openai_api_key=api_key, model_kwargs={"seed": 1106})
+        elif "llama" in llm_model_name.lower() or "meta" in llm_model_name.lower():
+            # Create HuggingFace pipeline
+            tokenizer = AutoTokenizer.from_pretrained(llm_model_name, token=api_key)
+            model = pipeline(
+                "text-generation",
+                model=llm_model_name,
+                tokenizer=tokenizer,
+                torch_dtype=torch.float16,
+                device_map="auto",
+                max_length=1024,
+                do_sample=True,
+                temperature=0.01,
+                top_k=20,
+                token=api_key
+            )
+            llm = HuggingFacePipeline(pipeline=model)
+            return llm
+        else:
+            raise ValueError(f"Unsupported model: {llm_model_name}")
+
     def load_data(self, data_source, mode):
         if mode == 'csv':
-            self.loader = CSVLoader(data_source, source_column='Procedures', metadata_columns=['URL'] , encoding="ISO-8859-1")
-            self.data = self.loader.load()
+            # Phiên bản mới của CSVLoader - thay đổi cách sử dụng
+            self.loader = CSVLoader(
+                file_path=data_source,
+                csv_args={
+                    'delimiter': ',',
+                    'quotechar': '"',
+                    'encoding': 'ISO-8859-1'
+                },
+                source_column='Procedures'
+            )
+            
+            # Đọc dữ liệu
+            documents = self.loader.load()
+            
+            # Đọc URL từ CSV và thêm vào metadata
+            df = pd.read_csv(data_source, encoding='ISO-8859-1')
+            for i, doc in enumerate(documents):
+                if i < len(df):
+                    doc.metadata['URL'] = df.loc[i, 'URL']
+            
+            self.data = documents
         elif mode == 'all_urls':
             self.data = self.load_and_split_web_content_all(Enterprise_URLS)
         elif mode == 'reference_url':
@@ -127,6 +164,9 @@ class MITREAnalysis:
                     break
                 except (openai.error.RateLimitError, openai.error.APIError, openai.error.Timeout,
                         openai.error.OpenAIError, openai.error.ServiceUnavailableError):
+                    time.sleep(5)
+                except Exception as e:
+                    print(f"Error: {e}")
                     time.sleep(5)
         return predictions
 
